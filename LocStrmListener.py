@@ -26,20 +26,22 @@ http://stackoverflow.com/questions/21519351/tweepy-tracking-multiple-terms
 
 #This is a basic listener that just prints received tweets to stdout.
 class StdOutListener(StreamListener):
-  
-  def __init__(self, api = None, fprefix = 'streamer'):
+
+  def __init__(self, api = None, fprefix = 'tweets_strmng', limcnt=1):
     self.api = api or API()
+    self.limcnt  = limcnt
     self.counter = 0
     self.fprefix = fprefix
     #self.output  = open(fprefix + '.'+ time.strftime('%Y%m%d-%H%M%S') + '.json', 'w')
-    self.output  = open(fprefix + '.json', 'a')
+    self.output  = open(fprefix +'.json', 'a')
 
   def on_data(self, data):
     data = json.loads(HTMLParser().unescape(data))
     #tweet = "%s => %s"%(data['text'].encode('utf-8'), data['place']['name'].encode('utf-8'))
     self.output.write(str(data) + "\n")
     self.counter += 1
-    if self.counter > 50:
+    if self.counter > self.limcnt:
+        print '> stopping ...'
         self.output.close()
         self.counter = 0
         return False
@@ -74,27 +76,33 @@ class StdOutListener(StreamListener):
 
   def on_status(self, status):
     print 'ons',self.counter, status['text']
-    self.counter += 1
+#		self.counter += 1
+#
+#		if self.counter >= self.limcnt:
+#			self.output.close()
+#			self.counter = 0
+#			return False  
 
-    if self.counter >= 50:
-      self.output.close()
-      self.counter = 0
-      return False
+    try:
+        print status.text
+    except Exception, e:
+        print 'Encountered Exception Tweet:', e
+        pass
+    return True
+		
+  def on_error(self, status_code):
+    print 'Encountered error with status code:' + repr(status_code)
+    sys.stderr.write('Error: ' + str(status_code) + "\n")
+    return True
   
-    return
-
   def on_delete(self, status_id, user_id):
     self.delout.write( str(status_id) + "\n")
     return
     
   def on_limit(self, track):
-    sys.stderr.write("!! " + track + "\n")
+    sys.stderr.write("!!!! " + track + "\n")
     return
 
-  def on_error(self, status_code):
-    sys.stderr.write('Error: ' + str(status_code) + "\n")
-    return False
-    
   def on_timeout(self):
     sys.stderr.write("Timeout, sleeping for 60 seconds...\n")
     time.sleep(60)

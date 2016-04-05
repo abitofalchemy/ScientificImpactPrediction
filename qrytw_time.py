@@ -104,7 +104,7 @@ def main():
   trck = [str(args['query'])]
 
   listen = StdOutListener(api, str(args['o']))
-  stream = tweepy.Stream(auth = api.auth, listener = listen)
+  stream = tweepy.Stream(auth = api.auth, listener = listen, timeout=3600)
   
   print "Streaming started..."
   

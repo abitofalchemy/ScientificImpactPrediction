@@ -2,10 +2,12 @@ import json, io
 import pandas as pd
 import numpy as np
 import string, re
+import networkx as nx
 
 from pprint import pprint
 from collections import defaultdict
 from nltk.tokenize import RegexpTokenizer
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
 import matplotlib
@@ -15,6 +17,12 @@ plt.style.use('ggplot')
 
 global clust, df
 verbose = False
+
+def drop_duplicates(doclist):
+  df = pd.DataFrame(doclist)
+  df = df.drop_duplicates()
+  return df
+
 
 def jacc_coeff(words_set_a, words_set_b):
   if len(words_set_a) <1  or len(words_set_b) < 1:
@@ -50,7 +58,7 @@ def cluster(tid, doc):
 
 # << Begin >>
 #given_json_file = "Tweets.json"
-given_text_file = "tweets.json"
+given_text_file = "../../data_collection/tweets.json"
 #given_text_file = "datasets/isomorphism_quasipolynomial.json"
 
 # reads in the JSON file
@@ -65,36 +73,83 @@ if 0:
 
 data_json = io.open(given_text_file, mode='r', encoding='utf-8').read()
 raw_tweets=data_json.splitlines()
-#print raw_tweets[0]
+print 'read json lines into a list.'
 
 docs =[]
 tids =[]
-links =[]
-tw_dict = dict()
+links = {}
+tweet_d = dict()
+ucitesc = {}
 
 k = 0 
 for d in raw_tweets:
-# 	print d
-#  a = json.dumps(d.replace("\'", '"'))
-	print k
-	k +=1 
-	if not len(d):
-		continue
-	tw_d = json.loads(d.rstrip('\n'))
-	tt = str(tw_d[u'text'].encode("utf-8"))
-	lnks = re.findall(r'(https?://\S+)', tt) #re.search("(?P<url>https?://[^\s]+)", tt)
-	if len(lnks):
-		links.append(lnks)
-	tt = tt.translate(None, string.punctuation)
-	words_list = tt.split()
-	# Filtered Words
-	fw = [word for word in words_list if word not in stopwords.words('english')]
-	docs.append( fw )
-	# a dict with tweet id as the key and the filtered words as the values
-	tw_dict[tw_d[u'id']] = fw
-	tids.append( tw_d[u'id'] )
+  k +=1
+  if not len(d): continue
+  tw_d = json.loads(d.rstrip('\r\n'))
+  tt = str(tw_d[u'text'].encode("utf-8"))
+  print tt
+  lnks = re.findall(r'(https?://\S+)', tt) # re.search("(?P<url>https?://[^\s]+)", tt)
+  if len(lnks):                            # dropping links from tweet string
+    links[tw_d['id']] = lnks
+    for l in lnks:
+      print '>',tt
+      print 'removing', l
+      tt= tt.strip(str(l))
+      print ':',tt
+  if not len(tt):                          # continue if len is 0
+    continue
+  tt = tt.translate(None, string.punctuation)
+  tt = tt.split()  # tokenize
+  tokens = [word for word in tt if word not in stopwords.words('english')]
+  docs.append( tokens )
+  tweet_d[tw_d[u'id']] = tokens # a dict with tweet id as the key and the filtered words as the values
+  tids.append( tw_d[u'id'] )
+  ucitesc[tw_d['user']['id']] = tw_d['id']
 # ##
+#pprint (docs)
 
+# fwvec: vec of filtered tokens
+# tw_dic with keys as the tweet ID and a list of tweet ids
+# Now, do we cluster or do we build a graph?
+#
+# docs tokenized tweets
+
+# Dataset stats
+print '~'*20
+print '# of tweets', len(docs)
+print '# of linkss', len(links)
+print '# size of d', len(tweet_d)
+doc_vecs = drop_duplicates(docs).values
+print np.shape(doc_vecs)
+print '~'*20
+
+#for doc in docs:
+#  print doc
+#  break
+#pprint (ucitesc)
+#print len(ucitesc)
+#print
+#
+#for k,v in ucitesc.items():
+#  if v in links.keys():
+#    print tweet_d[v]
+#  
+#    print links[v]
+#    break
+
+# # #
+g = nx.Graph()
+for k,v in ucitesc.items():
+  g.add_edge(k,v)
+
+print g.number_of_nodes()
+print g.number_of_edges()
+print nx.is_connected(g)
+print 'NC',nx.number_connected_components(g)
+#print list(nx.connected_component_subgraphs(g)) #max(nx.connected_component_subgraphs(g), key=len))
+nx.draw_networkx(g,with_labels=False,font_size=8,node_size=20, alpha=0.75)
+plt.savefig('output.pdf')
+exit()
 
 ix = tids.pop()
 di = tw_dict.pop(ix)
