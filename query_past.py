@@ -17,7 +17,7 @@ import time, datetime
 def twitter_authentication():
 
   ## authentication
-  fileNamePaht = "../.env/keys.tsv"
+  fileNamePaht = ".env/keys.tsv"
   keys_dict = dict()
   with open(fileNamePaht, 'r') as f:
     inreader = csv.reader(f,delimiter='\t')
@@ -84,7 +84,7 @@ if __name__=='__main__':
   #        q="Babai AND isomorphism", \
   #        lang="en").items()
 
-  fprefix='datasets/' +args['query'].replace(' ','_')+'.json'
+  fprefix='Northwind/ScientificImpactPrediction/datasets/' +args['query'].replace(' ','_')+'.json'
   
   # PRINT BLOCK
   print '-'*80
