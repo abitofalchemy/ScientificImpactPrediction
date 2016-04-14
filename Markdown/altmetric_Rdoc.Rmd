@@ -1,0 +1,60 @@
+---
+title: "SocSens"
+author: "S.Aguinaga"
+date: "April 5, 2016"
+output: html_document
+---
+
+# The Influence of Scientific Publications
+
+## StarLog
+
+06Apr16 Layout out what we get from Alt Metric
+  - 'keywords or doi',pubid,counts
+  - [_] get twitter ids.
+    `arxiv_id` == `pub_id` followed by stats, followed by twitter ids
+    
+05Apr16 Getting back, sync'ng Sailntropy and Halyard
+
+- Need to focus on ground truth and baseline data
+- Need to sample data using Altmetric
+- NetAnalysis/spip.py:`def is_keywords_or_doi(query)`
+- [] Need to explore the real-timeliness of the approach
+- [] 
+
+
+## Sensing - data collection
+Cron jobs seem to be working
+
+### Twitter
+- `./query_past.py QUERY` will do the work. It also works whe we call 
+it from `spip.py /query/` 
+
+
+### Altmetric
+
+Notes:
+
+- Metrics: Do metrics matter `doi='10.1038/465860a'`
+- [The science of science](http://www.scienceofscience.org)
+- Todo: Can I **build a graph** from the information gathered.
+
+
+```{r pressure, echo=FALSE}
+# library(rAltmetric)
+# 
+# acuna <- altmetrics(doi='10.1038/489201a',getOption("altmetricKey"));
+# altmetric_data(acuna);
+# acuna_data <- altmetric_data(acuna);
+# write.csv(acuna_data, file = 'acuna_altmetrics.csv');
+# plot(acuna)
+
+```
+
+## Data Analysis
+
+
+- *Altmetric*  -> graph
+
+
+

@@ -2,7 +2,7 @@ __author__ = 'saguinag'+'@'+'nd.edu'
 __version__ = "0.1.0"
 
 ##
-##  data_analysis = hyperedge replacement grammars model
+##  net_proc network process 
 ##
 
 ## TODO: some todo list
@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+import re, datetime
 
 # class EdgeListGraph():
 #   '''
@@ -86,7 +87,8 @@ def main():
 
 def paris():
   edgelist_path = ["paper00_0.edgelist","Feb18_10_41paper00_0.edgelist","tweets_0.edgelist",]
-  edgelist_path = ["tweets_2.edgelist"]
+  edgelist_path = ["out.edgelist"]
+  edgelist_path = ['../dataset/json-1458206289_13Apr16_131739.edglst']
   G = nx.Graph()
   f, axs = plt.subplots(1,1,figsize=(1.6*4,1.*4))
   
@@ -115,7 +117,7 @@ def paris():
   axs.get_yaxis().set_ticks([])
   axs.set_title('Sparse graph: Users discussing an article')
   axs.set_xlabel('Users (red) and Citing article (blue)')
-  output_filename = 'outfile'
+  output_filename = 'outfig'
   plt.savefig( output_filename, bbox_inches='tight')
   print output_filename
 

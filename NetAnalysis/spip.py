@@ -17,6 +17,7 @@ __version__ = "0.1.0"
 import argparse,traceback
 import time, os, sys,  csv, json
 import pandas as pd 
+import subprocess
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 import string
@@ -44,7 +45,7 @@ def get_title_author_for_doi(query):
 	return ti,au
 				 	
 def save_given_query(query):
-	with open ("../data_collection/saved_queries.txt", 'a') as f:
+	with open ("./data_collection/saved_queries.txt", 'a') as f:
 		f.write(query+'\n')
 		
 def parse_input_args():
@@ -58,14 +59,15 @@ def main():
 	hello()
 	args = parse_input_args()
 	save_given_query(args['query'])
-	args['query'] = "10.1016.12.31/nature.S0735-1097(98)2000/12/31/34:7-7" # test query
-	args['query'] = "10.1038/nature16041"
-# 	args['query'] = 'The role of rapid diagnostics in managing Ebola epidemics' # test query
+	# args['query'] = "10.1016.12.31/nature.S0735-1097(98)2000/12/31/34:7-7" # test query
+	# args['query'] = "10.1038/nature16041"
+	# args['query'] = 'The role of rapid diagnostics in managing Ebola epidemics' # test query
 	kywds_doi = is_keywords_or_doi(args['query'])
 	key_wrds = []
 	if kywds_doi:
 		# get the doi's title
 		# else split the query into words and use to query twitter
+		print '<< doi >>'
 		title,author = get_title_author_for_doi(args['query'])
 		tt = str(title)
 # 		tt = tt.translate(string.punctuation)
@@ -77,8 +79,12 @@ def main():
 			print kywds_doi
 	else:
 		filt_wds = args['query'].split()
-			
-	print filt_wds		
+	
+	print ' '.join(filt_wds)		
+
+	retrn_bool = subprocess.call([sys.executable, './query_past.py', ' '.join(filt_wds)])
+	if retrn_bool:	print ('! Something went wrong ...')
+	return 
 if __name__ == '__main__':
 
   main()
