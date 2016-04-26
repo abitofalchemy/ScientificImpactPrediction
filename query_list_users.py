@@ -45,25 +45,25 @@ class Listener(StreamListener):
         f.write(text)
 
 
-if __name__=='__main__':
- 
+def given_screenname_getfollowers():
   import tweepy
   import json
   import numpy as np
+  import shelve
 
   auth_keys = twitter_authentication()
   CONSUMER_KEY = auth_keys['CONSUMER_KEY']
   CONSUMER_SECRET = auth_keys['CONSUMER_SECRET']
   OAUTH_TOKEN=auth_keys['OAUTH_TOKEN']
   OAUTH_TOKEN_SECRET = auth_keys['OAUTH_TOKEN_SECRET']
-  
+
   # print len (CONSUMER_KEY), len(CONSUMER_SECRET)
   # print len(OAUTH_TOKEN), len(OAUTH_TOKEN_SECRET)
-  
+
   ## OAuth process, using the keys and tokens
   auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
   auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-  
+
   ## Creation of the actual interface, using authentication
   api = tweepy.API(auth)
 
@@ -74,12 +74,12 @@ if __name__=='__main__':
   ##  (pub) -> tq_tweet -> user -> user_followers_list
   #
 
-  fname = 'dataset/tw_users_list_topic1.txt'
+  fname = 'datasets/tw_users_list_topic1.txt'
   scrn_names_lst = np.loadtxt(fname,dtype=str)
 
 
   fids = []
-
+  usr_followers_d = {}
   for scrnm in scrn_names_lst:
     print scrnm
     try:
@@ -91,5 +91,27 @@ if __name__=='__main__':
         continue
 
     print len(fids)
-    print fids
+    usr_followers_d[scrnm] = fids
+
+  myShelve = shelve.open('tusr_citing_has_follower_network.shl')
+  myShelve['usr_followers_d'] = usr_followers_d
+  myShelve.update(usr_followers_d)
+  myShelve.close()
+
+def load_follower_network_tobuild_graph():
+  import shelve
+
+  myShelve = shelve.open('tusr_citing_has_follower_network.shl')
+  usr_followers_d = myShelve['usr_followers_d']
+  myShelve.close()
+
+  print 'Read shelf done'
+  for k,v in usr_followers_d.items():
+    print k,v
     break
+
+
+if __name__=='__main__':
+  given_screenname_getfollowers()
+  load_follower_network_tobuild_graph()
+  print 'Done'

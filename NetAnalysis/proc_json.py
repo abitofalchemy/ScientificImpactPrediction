@@ -1,4 +1,6 @@
-import json, io
+import json
+import os
+import io
 import pandas as pd
 import numpy as np
 import string, re
@@ -115,12 +117,18 @@ def convert(data):
     else:
         return data
 
-
+# << Main >>
 # << Begin >>
+
 #given_text_file = "../data_collection/json-1458206289.json"
 #given_text_file = "../data_collection/paper_accepted.json"
 given_text_file = "../../data_collection/tweets.json"
-given_text_file = "./datasets/isomorphism_quasipolynomial.json"
+given_text_file = "../datasets/isomorphism_quasipolynomial.json"
+given_text_file = "../datasets/iso_morph_laszlo_babai_apollo.json"
+ds_name = os.path.basename(given_text_file).rstrip('.json')
+
+
+
 
 # reads in the JSON file
 if 0:
@@ -160,11 +168,12 @@ if 0:
   #       # print jacc_coeff(tq,tq)
   #       if jacc_coeff(set(tw['text']),set(tq)) > .6:
   #         print json.JSONEncoder().encode(tw['text']),'\n\t', tq
+hlinks = []
+docsd  = {}
+twbyuser_tw_id = []
 
-if 1:
-  hlinks = []
-  docsd  = {}
-  twbyuser_tw_id = []
+if 0:
+
   # tok = Tokenizer(preserve_case=False)
   with open(given_text_file) as f:
     i = 0
@@ -183,32 +192,67 @@ if 1:
       docsd[' '.join(tokens)] = (rtweets['user']['id'],rtweets['id'])
       twbyuser_tw_id.append([ ' '.join(tokens), rtweets['user']['id'],rtweets['id']])
       i += 1
+      if i > 10: break
+else:
+  # read apollo
+  data_json = io.open(given_text_file, mode='r', encoding='utf-8').read()
+  raw_tweets=data_json.splitlines()
+  print 'read json lines into a list.'
+  i = 0
+  for tw in raw_tweets:
+    rtweets = json.loads(tw)
+    lnks = re.findall(r'(https?://\S+)', rtweets['text'])
+    hlinks.append(lnks)
+    tokens = preprocess(rtweets['text'])
+    tokens = [word for word in tokens if word not in stopwords.words('english')]
+    tokens = [str(json.JSONEncoder().encode(s)).translate(None, string.punctuation) for s in tokens]
+    if lnks:
+      [tokens.remove(l) for l in lnks if l in tokens]
+
+    #print(rtweets['user']['id'],rtweets['id']) # value user_id cites tweet_id
+    docsd[' '.join(tokens)] = (rtweets['user']['id'],rtweets['id'])
+    twbyuser_tw_id.append([ ' '.join(tokens), rtweets['user']['id'],rtweets['id']])
+    i += 1
+
+
 print len(docsd), len(hlinks), len(twbyuser_tw_id)
 ## 17 5954 5954
+
 df = pd.DataFrame(twbyuser_tw_id)
-print df.head()
+print df.shape
+df = df.drop_duplicates()
+print df.shape
+# df = pd.DataFrame.from_dict(docsd.items())
+# print '',df.shape
+# df = df.drop_duplicates()
+# print '',df.shape
 
-# http://brandonrose.org/clustering
 
-#documents = [{"text": text, "tokens": text.split('\t')} for i, text in enumerate(docs)]
-# documents = [{"text": ' '.join(text), "tokens": text} for i, text in enumerate(docs)]
-documents = [{"text": text, "tokens": text.split()} for i, text in enumerate(docsd.keys())]
+#df = pd.DataFrame.from_dict(docsd.items())
+df[[1,2]].to_csv("../data_collection/"+ds_name+"uniq_claims.edgelist",header=False,index=False)
+
+if 1:
+  # http://brandonrose.org/clustering
+
+  #documents = [{"text": text, "tokens": text.split('\t')} for i, text in enumerate(docs)]
+  # documents = [{"text": ' '.join(text), "tokens": text} for i, text in enumerate(docs)]
+  documents = [{"text": text, "tokens": text.split()} for i, text in enumerate(docsd.keys())]
 
 
-sb.add_tfidf_to(documents)
-dist_graph = sb.get_distance_graph(documents)
+  sb.add_tfidf_to(documents)
+  dist_graph = sb.get_distance_graph(documents)
 
-j = 0
-with open ('../data_collection/isomorphism_quasipolynomial.edgelist', 'w') as f:
-  for cluster in sb.majorclust(dist_graph):
-    print j,"========="
-    for doc_id in cluster:
-        # userid = [k for k,v in user_claims_d.iteritems() if v == documents[doc_id]["tokens"]]
-  #      print doc_id,'cites', userid,documents[doc_id]["text"]
-        userid = docsd[documents[doc_id]["text"]][0]
-        print userid, 'cites_cluster', j, documents[doc_id]["text"]
-        f.write('{0}\t{1}\n'.format(userid,j))
-    j +=1
+  j = 0
+  with open ("../data_collection/"+ds_name+'_clusters.edgelist', 'w') as f:
+    for cluster in sb.majorclust(dist_graph):
+      print j,"========="
+      for doc_id in cluster:
+          # userid = [k for k,v in user_claims_d.iteritems() if v == documents[doc_id]["tokens"]]
+    #      print doc_id,'cites', userid,documents[doc_id]["text"]
+          userid = docsd[documents[doc_id]["text"]][0]
+          print userid, 'cites_cluster', j, documents[doc_id]["text"]
+          f.write('{0}\t{1}\n'.format(userid,j))
+      j +=1
 
 #with open ('../datasets/altmetric_tq.txt') as f:
 #  for l in f:
