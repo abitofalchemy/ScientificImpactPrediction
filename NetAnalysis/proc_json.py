@@ -117,13 +117,13 @@ def convert(data):
 
 
 # << Begin >>
-# given_text_file = "../../data_collection/tweets.json"
-given_text_file = "../data_collection/json-1458206289.json"
-given_text_file = "../data_collection/paper_accepted.json"
-
+#given_text_file = "../data_collection/json-1458206289.json"
+#given_text_file = "../data_collection/paper_accepted.json"
+given_text_file = "../../data_collection/tweets.json"
+given_text_file = "./datasets/isomorphism_quasipolynomial.json"
 
 # reads in the JSON file
-if 1:
+if 0:
   altm_tq = []
   with open ('../dataset/altmetric_tq.txt') as f:
     for l in f:
@@ -161,8 +161,7 @@ if 1:
   #       if jacc_coeff(set(tw['text']),set(tq)) > .6:
   #         print json.JSONEncoder().encode(tw['text']),'\n\t', tq
 
-exit()      
-if 0:
+if 1:
   hlinks = []
   docsd  = {}
   twbyuser_tw_id = []
@@ -185,11 +184,13 @@ if 0:
       twbyuser_tw_id.append([ ' '.join(tokens), rtweets['user']['id'],rtweets['id']])
       i += 1
 print len(docsd), len(hlinks), len(twbyuser_tw_id)
-pprint(twbyuser_tw_id)
+## 17 5954 5954
+df = pd.DataFrame(twbyuser_tw_id)
+print df.head()
 
-with open ('../dataset/altmetric_tq.txt') as f:
-  for l in f:
-    print l
+#with open ('../datasets/altmetric_tq.txt') as f:
+#  for l in f:
+#    print l
 
 exit()
 

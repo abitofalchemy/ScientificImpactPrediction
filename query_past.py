@@ -79,7 +79,7 @@ if __name__=='__main__':
   print args['query']
   cur = tweepy.Cursor(api.search, \
                       q=args['query'], \
-                      since='2015-10-01', until=today).items()
+                      since='2015-12-13', until=today).items()
   #cur = tweepy.Cursor(api.search, \
   #        q="Babai AND isomorphism", \
   #        lang="en").items()
