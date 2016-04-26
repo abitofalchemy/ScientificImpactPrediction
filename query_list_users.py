@@ -17,7 +17,7 @@ import time, datetime
 def twitter_authentication():
 
   ## authentication
-  fileNamePaht = ".env/keys.tsv"
+  fileNamePaht = "../.env/keys.tsv"
   keys_dict = dict()
   with open(fileNamePaht, 'r') as f:
     inreader = csv.reader(f,delimiter='\t')
@@ -49,6 +49,7 @@ if __name__=='__main__':
  
   import tweepy
   import json
+  import numpy as np
 
   auth_keys = twitter_authentication()
   CONSUMER_KEY = auth_keys['CONSUMER_KEY']
@@ -66,45 +67,29 @@ if __name__=='__main__':
   ## Creation of the actual interface, using authentication
   api = tweepy.API(auth)
 
-  # Parse input:
-  parser = argparse.ArgumentParser(description='Search Twitter by Query and otuput to file')
-  parser.add_argument('query', metavar='QUERY', help='Search Query')
-  parser.add_argument('-d', '--verbose', action='store_true', default=False,
-                      help='verbose output')
+  #
+  ##  From the tq list of tweets, we get those that interacted
+  ##  with these tweets and we get a list of their followers to
+  ##  to build a graph that expands:
+  ##  (pub) -> tq_tweet -> user -> user_followers_list
+  #
 
-  args = vars(parser.parse_args())
-  counter =0
-  today = datetime.datetime.today()
-  today = today.strftime('%Y-%m-%d')
-  print args['query']
-  cur = tweepy.Cursor(api.search, \
-                      q=args['query'], \
-                      since='2015-12-13', until=today).items()
-  #cur = tweepy.Cursor(api.search, \
-  #        q="Babai AND isomorphism", \
-  #        lang="en").items()
+  fname = 'dataset/tw_users_list_topic1.txt'
+  scrn_names_lst = np.loadtxt(fname,dtype=str)
 
-  fprefix='Northwind/ScientificImpactPrediction/datasets/' +args['query'].replace(' ','_')+'.json'
-  
-  # PRINT BLOCK
-  print '-'*80
-  print 'Given query:', args['query']
-  print 'Writing  to:', fprefix
-  
-  f = open(fprefix, 'a') 
-  search_results =[]
-  for tweet in cur:
+
+  fids = []
+
+  for scrnm in scrn_names_lst:
+    print scrnm
     try:
-        print "Tweet created:", tweet.created_at
-        print "Tweet:", tweet.text.encode('utf8')
-        #twt = json.loads(HTMLParser().unescape(tweet))
-        twt = tweet._json 
-
-        f.write(str(twt)+'\n')
-        counter += 1
-
-    except IOError:
+      for page in tweepy.Cursor(api.followers_ids, screen_name=scrnm).pages():
+        fids.extend(page)
         time.sleep(60)
+    except Exception, e:
+        print '___ error:', e, 'skipping user:',scrnm
         continue
 
-  f.close()
+    print len(fids)
+    print fids
+    break

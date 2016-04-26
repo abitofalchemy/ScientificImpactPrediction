@@ -20,7 +20,13 @@ import pandas as pd
 import subprocess
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
-import string
+import matplotlib
+matplotlib.use('pdf')
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+import pylab
+pylab.rcParams['xtick.major.pad']='8'
+pylab.rcParams['ytick.major.pad']='8'
 
 def hello():
 	print '-'*80
@@ -84,9 +90,99 @@ def main():
 
 	retrn_bool = subprocess.call([sys.executable, './query_past.py', ' '.join(filt_wds)])
 	if retrn_bool:	print ('! Something went wrong ...')
-	return 
+	return
+
+def draw_citedby_graph(df=None):
+	if df is None:
+		return
+
+	import networkx as nx
+
+	# edges = np.array([df[0].values,df.])
+	G = nx.Graph()
+	conv_toInt = lambda x: int(x)
+	df['uid'] = df['usr'].apply(conv_toInt)
+	print df.dtypes
+	edges = df[[0,'uid']].values
+
+	G.add_edges_from(edges)
+
+	f, axs = plt.subplots(1,1,figsize=(1.6*4,1*4))
+	p = nx.spring_layout(G)
+	nx.draw_networkx_edges(G,pos=p, ax=axs,edge_color='darkgray', width=0.7, alpha=.7)
+	nx.draw_networkx_nodes(G,pos=p, ax=axs,
+    node_size=20,
+  	node_color=G.nodes(),cmap=plt.cm.Reds_r)
+	# nx.draw_networkx(G, ax=axs,node_size=30, with_labels=False)
+	# nx.draw_networkx_edges(G, ax=axs, width=0.5)
+	axs.patch.set_facecolor('None')
+	axs.set_xticks([])
+	axs.set_yticks([])
+
+	plt.grid(0)
+	plt.savefig('outfig.pdf', bbox_inches='tight')
+
+	# get the LCC
+	lgcsg_d = {}
+	lgc_graphs= list(nx.connected_component_subgraphs(G))
+	for i,g in enumerate(lgc_graphs):
+		#print i, g.number_of_nodes()
+		if i == 0:
+			lgc_graphs[0] = (g.number_of_nodes(),g)
+			continue
+		if g.number_of_nodes() > lgc_graphs[0][1].number_of_nodes():
+			lgc_graphs[1] = lgc_graphs[0]
+			lgc_graphs[0] = (g.number_of_nodes(),g)
+
+	# print lgc_graphs[0][1].number_of_nodes()
+	# print lgc_graphs[1][1].number_of_nodes()
+
+	import net_metrics as metrics
+
+	metrics.draw_degree_probability_distribution(lgc_graphs[0][1])
+	metrics.draw_clustering_coefficients(lgc_graphs[0][1])
+	metrics.draw_kcore_decomposition(lgc_graphs[0][1])
+	metrics.draw_assortativity_coefficients(lgc_graphs[0][1])
+
+
+
+
+
+def proc_clusters(in_fname = None):
+	if in_fname is None:
+		return
+
+	df = pd.DataFrame.from_csv(in_fname, sep='\t',index_col=False,header=None)
+	# df['twt_id'] = [x[1] for x in df[1]]
+	# df['usr_id'] = df[1][0]
+	print [x.lstrip('(').rstrip(')') for x in df[1][0].split(', ')]
+
+	un_tuple = lambda x: x.split(', ')
+	rem_parens = lambda x: x.lstrip('(').rstrip(')')
+	df['usr_twt'] = df[1].apply(rem_parens).apply(un_tuple)
+	# df['usr_id'] = df['usr_twt']
+	#print df.head()
+
+	# print df['usr_twt'].head()
+	print
+	citedby_usrid = lambda x: x[0]
+	df['usr'] = df['usr_twt'].apply(citedby_usrid)
+	# clus_citedby_usrid = lambda x:  (x[0],x[1])
+	# print df[[0,'usr']].head()
+	# print df[[0,'usr']].apply(clus_citedby_usrid)
+	df[[0,'usr']].to_csv(in_fname.rstrip('.tsv')+'_out.tsv',
+											 sep='\t',
+											 header=None,
+											 index=False)
+
+	draw_citedby_graph(df)
+
 if __name__ == '__main__':
 
-  main()
-  print 'Done.'
-  sys.exit(0)
+	#main()
+	proc_clusters('../dataset/clusters_18Apr.tsv')
+	print 'Done.'
+	sys.exit(0)
+
+	# import networkx as nx
+	# nx.random_degree_sequence_graph('../dataset/clusters_18Apr.tsv')

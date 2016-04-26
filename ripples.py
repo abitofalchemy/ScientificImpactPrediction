@@ -105,33 +105,29 @@ def main():
     stream.disconnect()
 
 
+def almetrics():
+  parser = get_parser()
+  args = vars(parser.parse_args())
+
+  print args
+
+  from altmetric import Altmetric
+  # a = Altmetric()
+  # a.id("108989")
+  # a.doi("10.1126/science.1173146")
+  # a.ads("2009sci...325..578w")
+  # a.arxiv("1212.4819")
+  # a.pmid("19644114")
 
 
-#def streaming():
-#  ## Read my twitter auth keys and tokens
-#  auth_keys = twitter_authentication()
-#
-#  CONSUMER_KEY = auth_keys['CONSUMER_KEY']
-#  CONSUMER_SECRET = auth_keys['CONSUMER_SECRET']
-#  OAUTH_TOKEN=auth_keys['OAUTH_TOKEN']
-#  OAUTH_TOKEN_SECRET = auth_keys['OAUTH_TOKEN_SECRET']
-#
-#
-#  ## OAuth process, using the keys and tokens
-#  auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-#  auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-#
-#  ## Creation of the actual interface, using authentication
-#  api = tweepy.API(auth)
-#
-#
-#  l = StreamListener()
-#  streamer = tweepy.Stream(auth=api.auth, listener=l, timeout=36000000)
-#
-#  setTerms = ['C++ 17']
-#  streamer.filter(follow=None,track = setTerms)
+  a = Altmetric("ba98cef939ac1df0678161e10bfd661a")
+  #a.fetch("doi","10.1038/489201a")
+  a.doi("10.1126/science.1173146")
+  print a 
 
 
 if __name__ == '__main__':
-  main()
+  
+  if 0: main()
+  almetrics()
   sys.exit(0)

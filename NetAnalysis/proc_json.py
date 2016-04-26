@@ -188,11 +188,31 @@ print len(docsd), len(hlinks), len(twbyuser_tw_id)
 df = pd.DataFrame(twbyuser_tw_id)
 print df.head()
 
+# http://brandonrose.org/clustering
+
+#documents = [{"text": text, "tokens": text.split('\t')} for i, text in enumerate(docs)]
+# documents = [{"text": ' '.join(text), "tokens": text} for i, text in enumerate(docs)]
+documents = [{"text": text, "tokens": text.split()} for i, text in enumerate(docsd.keys())]
+
+
+sb.add_tfidf_to(documents)
+dist_graph = sb.get_distance_graph(documents)
+
+j = 0
+with open ('../data_collection/isomorphism_quasipolynomial.edgelist', 'w') as f:
+  for cluster in sb.majorclust(dist_graph):
+    print j,"========="
+    for doc_id in cluster:
+        # userid = [k for k,v in user_claims_d.iteritems() if v == documents[doc_id]["tokens"]]
+  #      print doc_id,'cites', userid,documents[doc_id]["text"]
+        userid = docsd[documents[doc_id]["text"]][0]
+        print userid, 'cites_cluster', j, documents[doc_id]["text"]
+        f.write('{0}\t{1}\n'.format(userid,j))
+    j +=1
+
 #with open ('../datasets/altmetric_tq.txt') as f:
 #  for l in f:
 #    print l
-
-exit()
 
 # exit()
 #
@@ -244,25 +264,3 @@ exit()
 
 #print len(result)
 #pprint (result)
-
-# http://brandonrose.org/clustering
-
-#documents = [{"text": text, "tokens": text.split('\t')} for i, text in enumerate(docs)]
-# documents = [{"text": ' '.join(text), "tokens": text} for i, text in enumerate(docs)]
-documents = [{"text": text, "tokens": text.split()} for i, text in enumerate(docsd.keys())]
-
-
-sb.add_tfidf_to(documents)
-dist_graph = sb.get_distance_graph(documents)
-
-j = 0
-with open ('out.edgelist', 'w') as f:
-  for cluster in sb.majorclust(dist_graph):
-    print j,"========="
-    for doc_id in cluster:
-        # userid = [k for k,v in user_claims_d.iteritems() if v == documents[doc_id]["tokens"]]
-  #      print doc_id,'cites', userid,documents[doc_id]["text"]
-        userid = docsd[documents[doc_id]["text"]][0]
-        print userid, 'cites_cluster', j, documents[doc_id]["text"]
-        f.write('{0}\t{1}\n'.format(userid,j))
-    j +=1
