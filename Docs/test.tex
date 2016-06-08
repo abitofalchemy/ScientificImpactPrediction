@@ -1,0 +1,45 @@
+\documentclass{beamer}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{pgfplots,etoolbox}
+\pgfplotsset{compat=1.7}
+\usepgfplotslibrary{groupplots}
+
+\begin{document}
+
+\def\myAs{1,2}
+\def\myBs{1,2}
+
+%\begin{frame}
+%  \begin{tikzpicture}
+%    \begin{groupplot}[group style={group size=2 by 2}, height=5cm, width=6cm]
+%      \def\myPlots{}
+%\pgfplotsforeachungrouped \x in {1,2,3}
+%{
+%  \pgfplotsforeachungrouped \y in {1,2,3}
+%  {
+%    \eappto\myPlots{%
+%      \noexpand\nextgroupplot
+%      \noexpand\addplot
+%          table[x=x, y=y] {results_\x_\y.csv};
+%    }
+%  }
+%}
+%\myPlots
+%    \end{groupplot}
+%  \end{tikzpicture}
+%\end{frame}
+
+\begin{tikzpicture}
+\begin{loglogaxis}[
+    enlargelimits=false]
+\addplot+[
+    only marks,
+    scatter,
+    mark=halfcircle*,
+    mark size=2.9pt] table[meta=pk]
+  {../Results/degree.tsv};
+\end{loglogaxis}
+\end{tikzpicture}
+
+\end{document}
