@@ -2,3 +2,10 @@
 .Rproj.user
 .Rhistory
 .RData
+.log
+.toc
+.aux
+.nav
+.snm
+.pdf
+*.swo
