@@ -60,6 +60,7 @@ def cluster(tid, doc):
 #given_json_file = "Tweets.json"
 given_text_file = "../../data_collection/tweets.json"
 #given_text_file = "datasets/isomorphism_quasipolynomial.json"
+given_text_file = "../../data_collection/tweets.json"
 given_text_file = "../datasets/iso_morph_laszlo_babai_apollo.json"
 
 # reads in the JSON file

@@ -1,9 +1,14 @@
 # ScientificImpactPrediction
 Using HRG model to predict scientific impact 
 
+- Working on procjson.py to process the data sets and output a time series tweet count for plotting
+- grep 4808504820  procjson.tsv | wc -l there should be only one; the edge list needs to be redone
+ 
+
+
 # Links:
 - http://www.clips.ua.ac.be/pattern
-
+- [Clustering](https://wakari.io/sharing/bundle/iuliacioroianu/Text_analysis_Python_NLTK)
 
 # StarLog
 - Proc Apollo DS

@@ -11,7 +11,10 @@ import json, time, sys, csv
 from HTMLParser import HTMLParser
 import sys, os, argparse
 import time, datetime
+import pandas as pd
 
+# Notes:
+# ---- 
 ## http://stackoverflow.com/questions/23531608/how-do-i-save-streaming-tweets-in-json-via-tweepy
 
 def twitter_authentication():
@@ -88,28 +91,50 @@ def given_screenname_getfollowers():
 	
 	import itertools
 	chain = itertools.chain(*scrn_names_lst)
-	scrn_names_list = [xfor x in list(chain) if x]
+	ids_list = [x for x in list(chain) if x]
 	
+	## chk what ids have been resolved
+	df = pd.read_csv('Results/twtrs_follower_network.tsv', sep='\t',header=None )
 	
-	fids = []
+	# 
 	usr_followers_d = {}
-	for scrnm in scrn_names_lst:
-		scr
+	outTsv = open("Results/twtrs_follower_network.tsv", "a")
+	
+	for j,id4usr in enumerate(ids_list):
+		id4usr = int(id4usr)
+		
+		fids = []
+		if id4usr in df[0].values:
+			print 'bypassing:', id4usr
+
+			continue
 		try:
-			for page in tweepy.Cursor(api.followers_ids, screen_name=scrnm).pages():
+			for page in tweepy.Cursor(api.followers_ids, id=id4usr).pages():
 				fids.extend(page)
 				time.sleep(60)
 		except Exception, e:
-				print '___ error:', e, 'skipping user:',scrnm
+				print '___ error:', e, 'skipping user:', id4usr
 				continue
 
-		print len(fids)
-		usr_followers_d[scrnm] = fids
+		'''
+		# The following code can be accessed if we need str screen_name 	
+		tuser_ids = [user.screen_name for user in api.lookup_users(user_ids=fids)]
+		pp.pprint ([id4usr, tuser_ids])
+		if j==4: exit()
+		'''
+		
+		if not(j % 10): print '--<',j,len(fids),'>--'
+		usr_followers_d[id4usr] = fids
+		outTsv.write("{}\t{}\n".format(id4usr,fids))
 
-	myShelve = shelve.open('Results/tusr_citing_has_follower_network.shl')
+	myShelve = shelve.open('Results/tusr_citing_follower_network.shl')
 	myShelve['usr_followers_d'] = usr_followers_d
 	myShelve.update(usr_followers_d)
 	myShelve.close()
+	outTsv.close()
+	
+	# Print # of ids processed
+	print 'ids processed:', j
 
 def load_follower_network_tobuild_graph():
   import shelve
@@ -126,5 +151,5 @@ def load_follower_network_tobuild_graph():
 
 if __name__=='__main__':
   given_screenname_getfollowers()
-  load_follower_network_tobuild_graph()
+  #load_follower_network_tobuild_graph()
   print 'Done'

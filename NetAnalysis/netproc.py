@@ -15,14 +15,16 @@ __version__ = "0.1.0"
 
 
 import argparse, traceback, optparse
-import time, os, sys, csv, json
+import time, os, sys, csv
+import json
 import pandas as pd
 import networkx as nx
 import matplotlib
 import pprint as pp
+from heapq import *
+
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
-
 plt.style.use('ggplot')
 import re, datetime
 
@@ -108,7 +110,7 @@ def paris():
           #          print row
           edges.append((row[0], row[1]))
           user_v[row[0]] = 1
-        #    print G.nodes()
+
     G.add_edges_from(edges)
     print G.number_of_nodes()
     print G.number_of_edges()
@@ -116,7 +118,7 @@ def paris():
 
     #    nx.draw_networkx(G,ax=axs,with_labels=False,font_size=8,node_size=20, alpha=0.75)
     nx.draw_networkx(G, ax=axs, cmap=plt.get_cmap('flag'), node_color=values, pos=spring_layout(G),
-                  with_labels=False, font_size=8, node_size=10, alpha=0.7)
+                     with_labels=False, font_size=8, node_size=10, alpha=0.7)
 
   # axs.grid(b= 'off')#, which ='both') 
   axs.get_xaxis().set_ticks([])
@@ -126,73 +128,97 @@ def paris():
   output_filename = 'outfig'
   plt.savefig(output_filename, bbox_inches='tight')
   print output_filename
+  
 
 def clustered():
-
   f, axs = plt.subplots(1, 1, figsize=(1.6 * 4, 1. * 4))
-
-
-  # with open('../data_collection/' + infile) as f:
-  #   inreader = csv.reader(f, delimiter="\t")
-  #   edges = []
   user_v = {}
-  #
-  #   for row in inreader:
-  #     if not row[0].startswith('%'):
-  #       print (int(row[0]), int(row[1]))
-  #       edges.append((int(row[0]), int(row[1])))
-  #       user_v[int(row[0])] = 1
-  #     #    print G.nodes()
-  # G.add_edges_from(edges)
-  # print type(infile), infile
 
-  G = nx.read_edgelist("../data_collection/iso_morph_laszlo_babai_apoll_clusters.edgelist", delimiter=',')
-  print G.number_of_nodes()
-  print G.number_of_edges()
-  exit()
+  g = nx.read_edgelist("../data_collection/iso_morph_laszlo_babai_apoll_clusters.edgelist", nodetype=int)
+  print g.number_of_nodes()
+  print g.number_of_edges()
+  n = g.number_of_nodes()
 
-  n = G.number_of_nodes()
-  ## Position nodes using a random geometric graph
-  # GG= random_geometric_graph(n, 0.5)
-  # gpos= get_node_attributes(GG, 'pos')
-  # # find node near center (0.5,0.5)
-  # dmin=1
-  # ncenter=0
-  # for n in gpos:
-  #     x,y=gpos[n]
-  #     d=(x-0.5)**2+(y-0.5)**2
-  #     if d<dmin:
-  #         ncenter=n
-  #         dmin=d
-  # # # color by path length from node near center
-  # p=nx.single_source_shortest_path_length(GG,ncenter)
+  print '|V|',n
+  print nx.is_connected(g)
+  lcc_gobj = max(nx.connected_component_subgraphs(g), key=len)
+  n = lcc_gobj.number_of_nodes()
+  print '|V|', n
 
-  for e in G.edges():
-    user_v[e[0]] = 1
-  values = [user_v.get(v, 0.125) for v in G.nodes()]
+  # Position nodes using a random geometric graph
+  GG= nx.random_geometric_graph(n, 0.125)
+  gpos= nx.get_node_attributes(GG, 'pos')
+  print gpos
 
-  #    nx.draw_networkx(G,ax=axs,with_labels=False,font_size=8,node_size=20, alpha=0.75)
-  gpos = nx.random_layout(G)
-  nx.draw_networkx(G, pos=gpos, ax=axs, cmap=plt.get_cmap('flag'), node_color=values,
-                with_labels=False, font_size=8, node_size=20, alpha=0.7)
-  # nx.draw_networkx_edges(G, gpos, ax=axs, edge_color='lightgray', width=1., alpha=0.5)
-  # nx.draw_networkx_nodes(G, gpos, nodelist=p.keys(),
-   #                        node_size=80,
-   #                        node_color=G.nodes(),
-   #                        cmap=plt.get_cmap('flag'))
+  # find node near center (0.5,0.5)
+  dmin=1
+  ncenter=0
+  for n in gpos:
+      x,y=gpos[n]
+      d=(x-0.5)**2+(y-0.5)**2
+      if d<dmin:
+          ncenter=n
+          dmin=d
 
-  # axs.grid(b= 'off')#, which ='both')
-  axs.get_xaxis().set_ticks([])
-  axs.get_yaxis().set_ticks([])
-  axs.patch.set_facecolor('None')
-  # axs.set_title('Sparse graph: Users discussing an article')
-  # axs.set_xlabel('Users (red) and Citing article (blue)')
 
-  pp.pprint(G.edges())
+  npos = {}
+  for i,k in enumerate(lcc_gobj.nodes()):
+    npos[k] = gpos[i]
+  # color by path length from node near center
+  # p=nx.single_source_shortest_path_length(lcc_gobj, ncenter)
+
+  plt.figure(figsize=(8,8))
+  # nx.draw_networkx_edges(lcc_gobj,npos,nodelist=[ncenter],alpha=0.4)
+  # nx.draw_networkx_nodes(lcc_gobj,gpos,
+  #                        node_size=80,
+  #                        cmap=plt.cm.Reds_r)
+
+  nx.draw_networkx(lcc_gobj,pos=npos, arrows=False,with_labels=False,node_size=80,weight=0.5, cmap=plt.cm.Blues)
+
+  if 0:
+    ## Position nodes using a random geometric graph
+    # GG= random_geometric_graph(n, 0.5)
+    # gpos= get_node_attributes(GG, 'pos')
+    # # find node near center (0.5,0.5)
+    # dmin=1
+    # ncenter=0
+    # for n in gpos:
+    #     x,y=gpos[n]
+    #     d=(x-0.5)**2+(y-0.5)**2
+    #     if d<dmin:
+    #         ncenter=n
+    #         dmin=d
+    # # # color by path length from node near center
+    # p=nx.single_source_shortest_path_length(GG,ncenter)
+
+    for e in g.edges():
+      user_v[e[0]] = 1
+
+    values = [user_v.get(v, 0.125) for v in g.nodes()]
+
+    #    nx.draw_networkx(G,ax=axs,with_labels=False,font_size=8,node_size=20, alpha=0.75)
+    gpos = nx.random_layout(g)
+    nx.draw_networkx(g, pos=gpos, ax=axs, cmap=plt.get_cmap('flag'), node_color=values, \
+                     with_labels=False, font_size=8, node_size=20, alpha=0.7)
+    # nx.draw_networkx_edges(G, gpos, ax=axs, edge_color='lightgray', width=1., alpha=0.5)
+    # nx.draw_networkx_nodes(G, gpos, nodelist=p.keys(),
+    #                        node_size=80,
+    #                        node_color=g.nodes(),
+    #                        cmap=plt.get_cmap('flag'))
+
+    # axs.grid(b= 'off')#, which ='both')
+    axs.get_xaxis().set_ticks([])
+    axs.get_yaxis().set_ticks([])
+    axs.patch.set_facecolor('None')
+    # axs.set_title('Sparse graph: Users discussing an article')
+    # axs.set_xlabel('Users (red) and Citing article (blue)')
+
+  pp.pprint(g.edges())
   output_filename = 'outfig'
   plt.savefig(output_filename, bbox_inches='tight')
   print output_filename
-
+  
+  
 def halyard():
   edgelist_path = ["paper00_0.edgelist", "Feb18_10_41paper00_0.edgelist", "tweets_0.edgelist", ]
   edgelist_path = ["out.edgelist"]
@@ -204,7 +230,7 @@ def halyard():
   f, axs = plt.subplots(1, 1, figsize=(1.6 * 4, 1. * 4))
 
   for i, infile in enumerate(edgelist_path):
-    print  infile,'~'*20
+    print  infile, '~' * 20
     # with open('../data_collection/' + infile) as f:
     #   inreader = csv.reader(f, delimiter="\t")
     #   edges = []
@@ -219,7 +245,8 @@ def halyard():
     # G.add_edges_from(edges)
     print type(infile), infile
 
-    G = nx.read_edgelist(infile, delimiter=',',nodetype=int)
+    G = nx.read_edgelist(infile, delimiter=',', nodetype=int)
+
     print G.number_of_nodes()
     print G.number_of_edges()
     n = G.number_of_nodes()
@@ -245,12 +272,17 @@ def halyard():
     #    nx.draw_networkx(G,ax=axs,with_labels=False,font_size=8,node_size=20, alpha=0.75)
     gpos = nx.random_layout(G)
     nx.draw_networkx(G, pos=gpos, ax=axs, cmap=plt.get_cmap('flag'), node_color=values,
-                  with_labels=False, font_size=8, node_size=20, alpha=0.7)
+                  	 with_labels=False, font_size=8, node_size=20, alpha=0.7)
     # nx.draw_networkx_edges(G, gpos, ax=axs, edge_color='lightgray', width=1., alpha=0.5)
     # nx.draw_networkx_nodes(G, gpos, nodelist=p.keys(),
 		 #                        node_size=80,
 		 #                        node_color=G.nodes(),
 		 #                        cmap=plt.get_cmap('flag'))
+    # nx.draw_networkx_edges(G, gpos, ax=axs, edge_color='lightgray', width=1., alpha=0.5)
+    # nx.draw_networkx_nodes(G, gpos, nodelist=p.keys(),
+    #                        node_size=80,
+    #                        node_color=G.nodes(),
+    #                        cmap=plt.get_cmap('flag'))
 
     # axs.grid(b= 'off')#, which ='both')
     axs.get_xaxis().set_ticks([])
