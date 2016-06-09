@@ -4,6 +4,8 @@
 \usepackage{pgfplots,etoolbox}
 \pgfplotsset{compat=1.7}
 \usepgfplotslibrary{groupplots}
+\usepackage{pgfplotstable}
+\selectcolormodel{cmyk}
 
 \begin{document}
 
@@ -15,7 +17,7 @@
 %    \begin{groupplot}[group style={group size=2 by 2}, height=5cm, width=6cm]
 %      \def\myPlots{}
 %\pgfplotsforeachungrouped \x in {1,2,3}
-%{
+%{G
 %  \pgfplotsforeachungrouped \y in {1,2,3}
 %  {
 %    \eappto\myPlots{%
@@ -33,7 +35,7 @@
 \begin{tikzpicture}
 \begin{loglogaxis}[
     enlargelimits=false]
-\addplot+[
+	\addplot+[
     only marks,
     scatter,
     mark=halfcircle*,
@@ -41,5 +43,19 @@
   {../Results/degree.tsv};
 \end{loglogaxis}
 \end{tikzpicture}
+
+\begin{frame}
+
+\begin{tikzpicture}
+	\begin{semilogxaxis}[
+    only marks,
+    title={\LARGE{Kronecker}},
+	]
+	%G
+	\addplot+ [green] table [col sep=tab,trim cells=true,x=v, y=eig] 
+		{../Results/origMmonthNetValue.tsv};
+\end{semilogxaxis}
+\end{tikzpicture}
+\end{frame}
 
 \end{document}

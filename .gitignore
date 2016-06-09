@@ -1,4 +1,4 @@
-.pyc
+*.pyc
 .Rproj.user
 .Rhistory
 .RData
@@ -9,3 +9,4 @@
 .snm
 .pdf
 *.swo
+*.shl

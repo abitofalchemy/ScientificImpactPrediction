@@ -9,6 +9,9 @@ Using HRG model to predict scientific impact
 # Links:
 - http://www.clips.ua.ac.be/pattern
 - [Clustering](https://wakari.io/sharing/bundle/iuliacioroianu/Text_analysis_Python_NLTK)
+- [Spectral signature](http://www.sciencedirect.com/science/article/pii/S0166218X08003594)
+- [Spectral Evolution](http://userpages.uni-koblenz.de/~kunegis/paper/kunegis-spectral-network-evolution.pdf)
+
 
 # StarLog
 - Proc Apollo DS
