@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__author__  = 'Sal Aguinaga'
+__author__	= 'Sal Aguinaga'
 __license__ = "GPL"
 __version__ = "0.1.0"
-__email__   = "saguinag@nd.edu"
+__email__	 = "saguinag@nd.edu"
 
 import pprint as pp
 import pandas as pd
@@ -56,6 +56,7 @@ def level1_json_proc(in_json_fname=""):
 	# Who is the tweet owner
 	tweets['user'] = map(lambda tweet: tweet['user']['screen_name'], mozsprint_data)
 	tweets['uid'] = map(lambda tweet: tweet['user']['id'], mozsprint_data)
+	tweets['docid']= map(lambda tweet: tweet['id'], mozsprint_data)
 	# How many follower this user has
 # 	tweets['user_followers_count'] = map(lambda tweet: tweet['user']['followers_count'], mozsprint_data)
 	# What is the tweet's content
@@ -67,7 +68,7 @@ def level1_json_proc(in_json_fname=""):
 	# Get links if in tweet
 	tmpar= map(lambda tweet: re.findall(r'(https?://\S+)', tweet), tweets['text'])
 	from itertools import chain
-	tmps =   list(chain.from_iterable(tmpar))
+	tmps =	 list(chain.from_iterable(tmpar))
 
 	print '-'*100
 # 	tweets['hlinks'] = tweets['text'].apply(lambda t: [t.strip(l) for l in re.findall(r'(https?://\S+)', t) if 'http' in t])
@@ -75,7 +76,7 @@ def level1_json_proc(in_json_fname=""):
 	# ToDo: need to save these to file.
 	
 	# Save the trimmed tweet links
-	tweets[['uid','cln']].to_csv('Results/tweets_cleaned.tsv', sep="\t", index=False, header=False)
+	tweets[['uid','docid','cln']].to_csv('Results/tweets_cleaned.tsv', sep="\t", index=False, header=False)
 	
 	# 	np.savetxt('Results/tweets_hyperlinks.tsv',tmps,fmt="%s", delimiter='\t')
 	
@@ -98,11 +99,13 @@ def level1_json_proc(in_json_fname=""):
 	return 
 	
 def get_parser():
-	parser = argparse.ArgumentParser(description='procjson')
-	parser.add_argument('jsonfile', metavar='JSONFILE', help='Input file.')
+	parser = argparse.ArgumentParser(description='procjson_clean clean json files. '+
+																							 'example: python procjson_clean.py datasets/ '+
+																							 '| Output: Results/tweets_cleaned.tsv')
+	parser.add_argument('jsonfile', metavar='JSONFILE', help='Input Folder')
 	parser.add_argument('--version', action='version', version=__version__)
 	return parser
-  
+	
 def main():
 	parser = get_parser()
 	args = vars(parser.parse_args())
@@ -114,5 +117,5 @@ def main():
  		os._exit(1)
 
 if __name__=='__main__':
-  main()
-  print 'Done'
+	main()
+	print 'Done'
