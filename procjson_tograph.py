@@ -1,26 +1,32 @@
 import shelve
-import numpy as np 
+import numpy as np
 import pandas as pd
 import networkx as nx
-import math 
+import math
 import sa_net_metrics as snm
 import matplotlib
+import itertools
+
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
+
 plt.style.use('ggplot')
 
-# Links: http://www.programcreek.com/python/example/5240/numpy.loadtxt
+
+# Links:
+# [0] http://www.programcreek.com/python/example/5240/numpy.loadtxt
+# [1] http://stackoverflow.com/questions/35782251/python-how-to-color-the-nodes-of-a-network-according-to-their-degree/35786355
 
 def convert_follower_network_2edgelist():
   dbg = False
-  df = pd.read_csv('Results/twtrs_follower_network.tsv', sep='\t',header=None )
+  df = pd.read_csv('Results/twtrs_follower_network.tsv', sep='\t', header=None)
 
   edges = []
-  with open('Results/procjson.tsv','w') as fout:
+  with open('Results/procjson.tsv', 'w') as fout:
     for row in df.iterrows():
       # get a count of the followers : a naive approach 
       users_flist = np.array([long(x) for x in row[1][1].lstrip('[').rstrip(']').split(',')])
-      sampsize = int(math.ceil(len( users_flist) * .10))
+      sampsize = int(math.ceil(len(users_flist) * .10))
       # pick 10% of their follower network at random
       if len(users_flist) > 1:
         idx = np.arange(len(users_flist))
@@ -31,58 +37,53 @@ def convert_follower_network_2edgelist():
 
       # now get the network for submample
       for j, trg in enumerate(subsample):
-        fout.write('{}\t{}\n'.format(row[1][0], trg)) #ong(trg.strip())))
-        
+        fout.write('{}\t{}\n'.format(row[1][0], trg))  # ong(trg.strip())))
+
         edges.append((row[1][0], trg))
       if dbg:  print row[1][0], len(row[1][1].lstrip('[').rstrip(']').split(','))
     if dbg: print len(edges)
   return edges
 
+
 def visualize_graph(graph):
   if graph is None: return
-  G  = graph
+  G = graph
   # identify largest connected component
 
-  Gcc=sorted(nx.connected_component_subgraphs(G), key = len, reverse=True)
+  Gcc = sorted(nx.connected_component_subgraphs(G), key=len, reverse=True)
   print [len(x) for x in Gcc]
   Gcc = Gcc[0]
   print nx.info(Gcc)
-  print 'A' 
-  pos=nx.circular_layout(Gcc)
+  print 'A'
+  pos = nx.circular_layout(Gcc)
   print 'B'
   nx.draw_networkx(Gcc, pos, with_labels=False, width=0.125, node_size=20, alpha=0.5)
-  #nx.draw(Gcc, pos=nx.spring_layout(G))
+  # nx.draw(Gcc, pos=nx.spring_layout(G))
   # print saving to disk
   print 'Saving to disk ...'
-  plt.savefig('outplot',bb__inches='tight')
-
-
-
+  plt.savefig('outplot', bb__inches='tight')
 
   df = pd.DataFrame.from_dict(G.degree().items())
-  df.columns =['v','k']
+  df.columns = ['v', 'k']
   gb = df.groupby(['k']).count()
-  gb['pk'] = gb/float(G.number_of_nodes())
+  gb['pk'] = gb / float(G.number_of_nodes())
   print gb.head(), '<= gb'
-  #gb['deg'] = gb.index.values
+  # gb['deg'] = gb.index.values
   print gb.head()
 
   gb['pk'].to_csv('Results/degree.tsv', index=True, sep="\t", header=True)
 
-
   # draw graph
-  #G=nx.random_geometric_graph(G.number_of_nodes(),0.125)
+  # G=nx.random_geometric_graph(G.number_of_nodes(),0.125)
   # position is stored as node attribute data for random_geometric_graph
-  #pos=nx.get_node_attributes(G,'pos')
-  nx.draw_networkx(G, pos=nx.spring_layout(G), node_size=20, with_labels=False,  alpha=0.75, weight=0.5)
+  # pos=nx.get_node_attributes(G,'pos')
+  nx.draw_networkx(G, pos=nx.spring_layout(G), node_size=20, with_labels=False, alpha=0.75, weight=0.5)
   # print saving to disk
   print 'Saving to disk ...'
-  plt.savefig('outplot',bb__inches='tight')
+  plt.savefig('outplot', bb__inches='tight')
 
-if __name__ == '__main__':
-  #convert_follower_network_2edgelist()
-  
-  infname = 'Results/procjson.tsv'
+
+def main():
   if 1:
     G = nx.read_edgelist(infname)
     print nx.info(G)
@@ -96,22 +97,56 @@ if __name__ == '__main__':
     snm.get_clust_coeff([G], 'orig', 'mmonth')
     # write to disk egienvalue
     snm.network_value_distribution([G], [], 'origMmonth')
-        
+
   if 0:
-    edgelist= np.loadtxt(infname,dtype=str, delimiter='\t')
+    edgelist = np.loadtxt(infname, dtype=str, delimiter='\t')
     print edgelist[:4]
     idx = np.arange(len(edgelist))
     np.random.shuffle(idx)
     subsamp_edgelist = edgelist[idx[:100]]
     G = nx.Graph()
-    G.add_edges_from([(long(x),long(y)) for x,y in subsamp_edgelist])
-  
-  # visualize this graph 
+    G.add_edges_from([(long(x), long(y)) for x, y in subsamp_edgelist])
+
+  # visualize this graph
   # visualize_graph(G)
   exit()
-  
-  G = nx.Graph()
-  G.add_edges_from([(long(x),long(y)) for x,y in edgelist])
-  print nx.info(G)
-  print 'Done'  
 
+  G = nx.Graph()
+  G.add_edges_from([(long(x), long(y)) for x, y in edgelist])
+  print nx.info(G)
+  print 'Done'
+
+
+if __name__ == '__main__':
+  # convert_follower_network_2edgelist()
+  infname = 'Results/procjson.tsv'
+  infname = "Results/clustered_relevant_users.tsv"
+
+  with open(infname) as f:
+    lines = f.readlines()
+  edges = []
+  sourc = []
+  for j,l in enumerate(lines):
+    l = l.rstrip('\r\n')
+    lparts = l.split('\t')
+    edgesLst= [p.lstrip('[').rstrip(']') for p in lparts]
+    edges.append(tuple(edgesLst))
+    sourc.append(edgesLst[0])
+
+
+  ####
+  #### Builds the basic graph
+  ####
+  g = nx.Graph()
+  g.add_edges_from(edges)
+  print nx.info(g)
+  slpos = nx.spring_layout(g) # see this for a great grid layout [1]
+  nx.draw_networkx(g, pos=slpos, node_color='b', nodelist=sourc, with_labels=False,node_size=20, \
+                   edge_color='#7146CC')
+  nx.draw_networkx_nodes(g, pos=slpos, node_color='r', nodelist=[x for x in g.nodes() if x not in sourc], \
+                         alpha=0.8, with_labels=False,node_size=20)
+  plt.savefig('figures/plotfig', bbox_inches='tight', pad_inches=0)
+
+  ####
+  #### Builds the potential impact graph
+  ####

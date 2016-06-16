@@ -1,0 +1,12 @@
+---
+title: "Proc Apollo"
+author: "S.Aguinaga"
+date: "April 16, 2016"
+output: html_document
+---
+
+# Apollo DS
+
+## Data Collection
+`SocialSensing/ScientificImpactPrediction/data_collection`
+:
