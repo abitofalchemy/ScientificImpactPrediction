@@ -10,3 +10,5 @@
 .pdf
 *.swo
 *.shl
+.idea
+.ipynb_checkpoints/

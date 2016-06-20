@@ -58,6 +58,7 @@ def load_clustered_relevant_users():
     lparts = l.split('\t')
     edgesLst= [p.lstrip('[').rstrip(']') for p in lparts]
     sourc.append(edgesLst[0])
+
   return sourc
 
 def given_screenname_getfollowers():
@@ -125,7 +126,7 @@ def given_screenname_getfollowers():
   outTsv = open("Results/twtrs_follower_network.tsv", "a")
   
   for j,id4usr in enumerate(ids_list):
-    id4usr = int(id4usr)
+    id4usr = str(id4usr) # changed from int
     
     fids = []
     if 'df' in locals() and (id4usr in df[0].values):

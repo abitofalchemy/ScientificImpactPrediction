@@ -27,7 +27,7 @@ def get_basic_stats(grphs,gen_mod, name):
   df.to_csv()
 
 
-def get_degree_dist(grphs,gen_mod, name):
+def get_degree_dist(grphs,gen_mod_str, name):
   mf = pd.DataFrame()
   for g in grphs:
     d = g.degree()
@@ -37,9 +37,9 @@ def get_degree_dist(grphs,gen_mod, name):
 
   mf['pk'] = mf.mean(axis=1)/float(g.number_of_nodes())
   mf['k'] = mf.index.values
-  #print mf
-  out_tsv = '../Results/{}_{}_degree.tsv'.format(name,gen_mod)
+  out_tsv = 'Results/{}_{}_degree.tsv'.format(name,gen_mod_str)
   mf[['k','pk']].to_csv(out_tsv, sep='\t', index=False, header=True, mode="w")
+  if os.path.exists(out_tsv): print 'written: deg dist'
 
 def get_clust_coeff(grphs,gen_mod, name):
   mf = pd.DataFrame()
@@ -53,7 +53,7 @@ def get_clust_coeff(grphs,gen_mod, name):
   gb = mf.groupby(['k']).mean()
 
 
-  out_tsv = "../Results/{}_{}_clustering.tsv".format(name,gen_mod)
+  out_tsv = "Results/{}_{}_clustering.tsv".format(name,gen_mod)
   gb[['cc']].to_csv(out_tsv, sep="\t", header=True, index=True)
 
 def degree_prob_distributuion(orig_g_M, otherModel_M, name):
@@ -100,7 +100,7 @@ def network_value_distribution(orig_g_M, otherModel_M, name):
   # Dictionary of nodes with eigenvector centrality as the value.
 
   df.columns=['v','eig'] # eig: eigenvector centrality
-  df.to_csv('Results/{}NetValue.tsv'.format(name), sep='\t', header=True, \
+  df['eig'].to_csv('Results/{}NetValue.tsv'.format(name), sep='\t', header=True, \
             #float_format='%4.18f ', 
             encoding='utf-8', index=True)
 
