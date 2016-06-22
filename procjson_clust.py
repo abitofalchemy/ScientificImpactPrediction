@@ -12,7 +12,6 @@ import  scipy
 from	nltk.cluster	import	KMeansClusterer,	GAAClusterer,	euclidean_distance
 import	nltk.corpus
 import	nltk.stem
-import distance
 
 import	re
 import	io
@@ -45,6 +44,16 @@ global cDict;
 #     for k,v in cDict.items():
 #       jDist = distance.jaccard(dfrow[2], cDict[k]])
 
+def jaccard(seq1, seq2):
+  """Compute the Jaccard distance between the two sequences `seq1` and `seq2`.
+  They should contain hashable items.
+  
+  The return value is a float between 0 and 1, where 0 means equal, and 1 totally different.
+
+  from: https://github.com/doukremt/distance
+  """
+  set1, set2 = set(seq1), set(seq2)
+  return 1 - len(set1 & set2) / float(len(set1 | set2))
 
 def cluster_doc_collection(nbrK, clust_method, pndsDF):
   if clust_method != 'jacc':
@@ -73,10 +82,10 @@ def cluster_doc_collection(nbrK, clust_method, pndsDF):
 
       if len(cDict[k]) > 1:
         # print [df.loc[df[1] == y[1]][2].values[0].encode('utf-8') for y in cDict[k]]
-        jDVals.append([distance.jaccard(dfrow[1][2], df.loc[df[1] == y][2].values[0].encode('utf-8')) for y in cDict[k]])
+        jDVals.append([jaccard(dfrow[1][2], df.loc[df[1] == y][2].values[0].encode('utf-8')) for y in cDict[k]])
         jDist = np.mean(jDVals)
       else:
-        jDist = distance.jaccard(dfrow[1][2], str(df.loc[df[1] == cDict[k][0]][2].values[0].encode('utf-8')))
+        jDist = jaccard(dfrow[1][2], str(df.loc[df[1] == cDict[k][0]][2].values[0].encode('utf-8')))
 
       if ((k-1)/float(nbrK) > jDist) and (jDist < k/float(nbrK)):
         cDict[k].append(dfrow[1][1])
@@ -177,16 +186,15 @@ def	cluster_tweets_infile(in_tsv_fname=""):
 
   seed_filter = "Graph Isomorphism in Quasipolynomial Time Laszlo Babai"
 
-  df['jacc_dist'] = df.apply(lambda row: distance.jaccard(seed_filter, row[2]), axis=1)#
-  print df['jacc_dist'].describe()
-  print df.loc[df['jacc_dist']< 0.52][2]
+  df['jacc_dist'] = df.apply(lambda row: jaccard(seed_filter, row[2]), axis=1)#
+  #print df['jacc_dist'].describe()
+  #print df.loc[df['jacc_dist']< 0.52][2]
   if 1:
     extract_tweets_citedby_graph(df.loc[df['jacc_dist']< 0.52])
   else:
     df[2]	=	df[2].apply(lambda	tweet:	tweet.decode('utf-8'))
     cluster_doc_collection(21,'jacc',pndsDF=df)
 
-  exit()
 
 
 #   global	stemmer_func,	words,	stopwords
