@@ -18,20 +18,29 @@ plt.style.use('ggplot')
 # [1] http://stackoverflow.com/questions/35782251/python-how-to-color-the-nodes-of-a-network-according-to-their-degree/35786355
 
 def draw_citing_users_follower_count():
+  infname = 'Results/twtrs_follower_network.tsv'
+  print '\nProcessing:\n\t{}'.format(infname)
   df = pd.read_csv('Results/twtrs_follower_network.tsv', sep='\t', header=None)
-  df.columns = ['src', 'followers']
-
   count_followers = lambda row: len(row[1].split(','))
   df['fCnt'] = df.apply(count_followers, axis=1)
+  df.columns = ['src', 'followers','fCnt']
+  #to_numeric = lambda r: [np.int64(x) for x in r]
+  df['src'] = df['src'].apply(pd.to_numeric)
 
-  edglstdf = pd.read_csv('Results/clustered_relevant_users.tsv', sep='\t', header=None)
-  eldf = edglstdf.apply(lambda row: [x.lstrip('[').rstrip(']') for x in row])
+  infname = 'Results/clustered_relevant_users.tsv'
+  print 'Processing:\n\t{}'.format(infname)
+  eldf= pd.read_csv('Results/clustered_relevant_users.tsv', sep='\t', header=None)
+  eldf = eldf.apply(lambda row: [x.lstrip('[').rstrip(']') for x in row])
   eldf.columns = ['src','trg']
 
-
   eldf[['src']] = eldf[['src']].apply(pd.to_numeric)
+  eldf[['trg']] = eldf[['trg']].apply(pd.to_numeric)
+  
+  print df.shape
   df = pd.merge(eldf,df, on='src')
+  print df.shape
   df[['src','trg','fCnt']].to_csv('Results/procjson_edglst.tsv', sep='\t', header=False, index=False)
+  
 
   g=nx.Graph()
   g.add_edges_from(df[['src','trg']].values)
