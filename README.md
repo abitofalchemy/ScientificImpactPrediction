@@ -11,7 +11,13 @@ Using HRG model to predict scientific impact
 - [Clustering](https://wakari.io/sharing/bundle/iuliacioroianu/Text_analysis_Python_NLTK)
 - [Spectral signature](http://www.sciencedirect.com/science/article/pii/S0166218X08003594)
 - [Spectral Evolution](http://userpages.uni-koblenz.de/~kunegis/paper/kunegis-spectral-network-evolution.pdf)
-
+- [Improving Twitter Retrieval by Exploiting Structural Information](http://www.aaai.org/ocs/index.php/AAAI/AAAI12/paper/view/4913)
+	@inproceedings{luo2012improving,
+  	title={Improving Twitter Retrieval by Exploiting Structural Information},
+  	author={Luo, Zhunchen and Osborne, Miles and Wang, Ting and others},
+  	booktitle={Twenty-Sixth AAAI Conference on Artificial Intelligence},
+  	year={2012}
+		}
 
 # StarLog
 - Proc Apollo DS
