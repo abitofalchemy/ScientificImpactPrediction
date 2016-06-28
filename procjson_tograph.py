@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+__author__  = 'Sal Aguinaga'
+__license__ = "GPL"
+__version__ = "0.1.0"
+__email__  = "saguinag@nd.edu"
+
 import shelve
 import numpy as np
 import pandas as pd
 import networkx as nx
 import math
+import argparse
+import os
 import sa_net_metrics as snm
 import matplotlib
 import itertools
@@ -18,29 +26,20 @@ plt.style.use('ggplot')
 # [1] http://stackoverflow.com/questions/35782251/python-how-to-color-the-nodes-of-a-network-according-to-their-degree/35786355
 
 def draw_citing_users_follower_count():
-  infname = 'Results/twtrs_follower_network.tsv'
-  print '\nProcessing:\n\t{}'.format(infname)
   df = pd.read_csv('Results/twtrs_follower_network.tsv', sep='\t', header=None)
+  df.columns = ['src', 'followers']
+
   count_followers = lambda row: len(row[1].split(','))
   df['fCnt'] = df.apply(count_followers, axis=1)
-  df.columns = ['src', 'followers','fCnt']
-  #to_numeric = lambda r: [np.int64(x) for x in r]
-  df['src'] = df['src'].apply(pd.to_numeric)
 
-  infname = 'Results/clustered_relevant_users.tsv'
-  print 'Processing:\n\t{}'.format(infname)
-  eldf= pd.read_csv('Results/clustered_relevant_users.tsv', sep='\t', header=None)
-  eldf = eldf.apply(lambda row: [x.lstrip('[').rstrip(']') for x in row])
+  edglstdf = pd.read_csv('Results/clustered_relevant_users.tsv', sep='\t', header=None)
+  eldf = edglstdf.apply(lambda row: [x.lstrip('[').rstrip(']') for x in row])
   eldf.columns = ['src','trg']
 
+
   eldf[['src']] = eldf[['src']].apply(pd.to_numeric)
-  eldf[['trg']] = eldf[['trg']].apply(pd.to_numeric)
-  
-  print df.shape
   df = pd.merge(eldf,df, on='src')
-  print df.shape
   df[['src','trg','fCnt']].to_csv('Results/procjson_edglst.tsv', sep='\t', header=False, index=False)
-  
 
   g=nx.Graph()
   g.add_edges_from(df[['src','trg']].values)
@@ -127,7 +126,7 @@ def visualize_graph(graph):
   plt.savefig('outplot', bb__inches='tight')
 
 
-def main():
+def main111():
   if 1:
     G = nx.read_edgelist(infname)
     print nx.info(G)
@@ -160,18 +159,35 @@ def main():
   print nx.info(G)
   print 'Done'
 
-def draw_basic_network(G):
+def draw_basic_network(G,src_list):
   slpos = nx.spring_layout(G) # see this for a great grid layout [1]
-  nx.draw_networkx(G, pos=slpos, node_color='b', nodelist=sourc, with_labels=False,node_size=20, \
+  nx.draw_networkx(G, pos=slpos, node_color='b', nodelist=src_list, with_labels=False,node_size=20, \
                    edge_color='#7146CC')
-  nx.draw_networkx_nodes(G, pos=slpos, node_color='r', nodelist=[x for x in g.nodes() if x not in sourc], \
+  nx.draw_networkx_nodes(G, pos=slpos, node_color='r', nodelist=[x for x in G.nodes() if x not in src_list], \
                          alpha=0.8, with_labels=False,node_size=20)
-  plt.savefig('figures/plotfig', bbox_inches='tight', pad_inches=0)
+  plt.savefig('figures/basicfig', bbox_inches='tight', pad_inches=0)
 
-if __name__ == '__main__':
 
-  if 1: draw_citing_users_follower_count()
-  exit()
+def get_parser():
+  parser  = argparse.ArgumentParser(description='procjson clust | Ex: python  procjson_clust.py '+
+                                                'Results/tweets_cleaned.tsv')
+  parser.add_argument("--do-fcount", default=False, action="store_true" , help='draw citing-users & follower count')
+  parser.add_argument("--do-metrics", default=False, action="store_true" , help='compute metrics and write to disk')
+  parser.add_argument('--version',  action='version', version=__version__)
+  return  parser
+
+def main():
+  parser  = get_parser()
+  args  = vars(parser.parse_args())
+  print args
+
+  ''' draw a graph of citing-users and their follower count 
+      output: figures/outfig.pdf
+  '''
+  if args['do_fcount'] == True:
+    print '-'*4, 'draw a graph of citing-users and their follower count'
+    draw_citing_users_follower_count()
+    exit()
 
 
   infname = 'Results/procjson.tsv'
@@ -205,23 +221,33 @@ if __name__ == '__main__':
   g.add_edges_from(edges)
   
   print nx.info(g)
-  draw_basic_network(g)
+  print '-'*4,'draw basic network'
+  draw_basic_network(g,sourc)
   g.add_edges_from(plusEdgesLst)
   print nx.info(g)
 
-  ## \  /
-  ##  \/ isualization
-  # deg distrib
-  snm.get_degree_dist([g],"citeplus", 'orig')
 
-  # write to disk clustering coeffs for this graph
-  snm.get_clust_coeff([g], 'orig', 'citeplus')
+  if args ['do_metrics'] == True:
+    print '-'*4,'compute network metrics and write to disk'
+    ## \  /
+    ##  \/ isualization
+    # deg distrib
+    snm.get_degree_dist([g],"citeplus", 'orig')
 
-  # write to disk egienvalue
-  snm.network_value_distribution([g], [], 'citeplus')
+    # write to disk clustering coeffs for this graph
+    snm.get_clust_coeff([g], 'orig', 'citeplus')
 
-  if 0:
-    L = nx.normalized_laplacian_matrix(g)
-    e = np.linalg.eigvals(L.A)
-    print("Largest eigenvalue:", max(e))
-    print("Smallest eigenvalue:", min(e))
+    # write to disk egienvalue
+    snm.network_value_distribution([g], [], 'citeplus')
+
+    if 0:
+      L = nx.normalized_laplacian_matrix(g)
+      e = np.linalg.eigvals(L.A)
+      print("Largest eigenvalue:", max(e))
+      print("Smallest eigenvalue:", min(e))
+
+if __name__ == '__main__':
+
+  main()
+
+  
