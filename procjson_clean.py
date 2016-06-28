@@ -78,6 +78,7 @@ def level1_json_proc(in_json_fname="", hlinks=False):
 	
 	# print "-- hyperlinks_df"
 	# print hyperlinks_df.head()['xhlnks']
+
 	
 	print '-'*40
 	# tweets['hlinks'] = tweets['text'].apply(lambda t: [t.strip(l) for l in re.findall(r'(https?://\S+)', t) if 'http' in t])

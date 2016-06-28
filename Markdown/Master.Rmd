@@ -33,7 +33,10 @@ Cron jobs seem to be working
 ### Twitter
 - `./query_past.py QUERY` will do the work. It also works whe we call 
 it from `spip.py /query/` 
-
+- Procjson
+	```
+	
+	```
 
 ### Altmetric
 

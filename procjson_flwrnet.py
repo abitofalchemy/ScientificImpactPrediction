@@ -129,9 +129,11 @@ def given_screenname_getfollowers():
     id4usr = str(id4usr) # changed from int
     
     fids = []
-    if 'df' in locals() and (id4usr in df[0].values):
-      print 'bypassing:', id4usr
-      continue
+
+    if (not df.empty):
+      if any(df[0] == np.int64(id4usr)):
+        print 'bypassing:', id4usr
+        continue
 
     try:
       for page in tweepy.Cursor(api.followers_ids, id=id4usr).pages():

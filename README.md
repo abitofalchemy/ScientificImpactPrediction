@@ -1,6 +1,8 @@
 # ScientificImpactPrediction
 Using HRG model to predict scientific impact 
 
+- PubRKD  is now the front file that can run it all.
+- Need to have ..tograph take an argument to know what the hell it does and how it works
 - Working on procjson.py to process the data sets and output a time series tweet count for plotting
 - grep 4808504820  procjson.tsv | wc -l there should be only one; the edge list needs to be redone
  
